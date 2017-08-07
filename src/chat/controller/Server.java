@@ -171,11 +171,14 @@ public class Server {
      * 广播所有客户刷新在线客户列表
      */
     private void broadcasting() {
-        // 创建在线客户列表的广播消息
-        Message msg = new Message(logList);
-        // 广播刷新消息
-        for (Client client : broadcastList)
-            this.sendMessage(client, msg);
+        // 当在线用户不为空
+        if (!logList.isEmpty()) {
+            // 创建在线客户列表的广播消息
+            Message msg = new Message(logList);
+            // 广播刷新消息
+            for (Client client : broadcastList)
+                this.sendMessage(client, msg);
+        }
     }
     
     /**
@@ -212,14 +215,15 @@ public class Server {
         public void run() {
             while (true) {
                 Message recvMsg = receiveMessage(client); // 接收客户的操作消息
+                if (recvMsg == null) break; // 客户端断开,退出
                 Message sndMsg = null;
                 if (Operator.REGISTER == recvMsg.getOp()) {     // 注册操作
                     // 根据注册消息得到用户信息
                     User user = new User(recvMsg);
-                    if (!isUserExsits(user)) {   // 注册用户不存在
+                    if (!isUserExsits(user)) {                  // 注册用户不存在
                         createUser(user);                                    // 创建新用户
                         sndMsg = new Message(Operator.REGISTER, Result.YES, user);  // 创建注册成功消息
-                    } else {                            // 用户存在,创建用户失败
+                    } else {                                    // 用户存在,创建用户失败
                         sndMsg = new Message(Operator.REGISTER, Result.NO);         // 创建注册失败消息
                     }
                     sendMessage(client, sndMsg); // 将注册结果消息发给客户端
@@ -242,6 +246,7 @@ public class Server {
                             addToLogList(client, recvMsg);
                             // 检索用户信息
                             User _user = retrieveUser(user);
+                            client.setUer(_user);
                             // 将登录成功消息和用户信息发给客户端
                             sndMsg = new Message(Operator.LOGIN, Result.YES, _user);
                             sendMessage(client, sndMsg);
@@ -251,6 +256,13 @@ public class Server {
                     }
                 }
             }
+            // 客户端断开连接的处理
+            // 删除广播列表所在的客户端
+            broadcastList.remove(client);
+            // 删除登录清单所在客户信息
+            logList.remove(client.getName());
+            // 广播所有客户刷新在线用户列表
+            broadcasting();
         }
     }
 }

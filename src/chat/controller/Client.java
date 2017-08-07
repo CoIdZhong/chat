@@ -32,7 +32,7 @@ import chat.utils.MyStringUtils;
  */
 public class Client{
     
-    private static final String REMOTE_HOST  = "192.168.0.246"; // 远程tcp服务器地址
+    private static final String REMOTE_HOST  = "192.168.174.1"; // 远程tcp服务器地址
     private static final int TCP_SERVER_PORT = 30000;           // 远程tcp服务器端口号
     private static final Pattern PATTERN = Pattern.compile("\\{(\\w+:(\\w|\\.)+,?)+\\}"); // 匹配模式
     
@@ -53,8 +53,6 @@ public class Client{
     public Client(Socket tcpSocket) {
         this.tcpSocket = tcpSocket;
     }
-
-    
     
     /**
      * 获取输入流
@@ -156,7 +154,7 @@ public class Client{
         try {
             String line = this.reader().readLine();
             return new Message(line);
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) { System.out.println("检测到客户端断开...");}
         return null;
     }
     
@@ -207,6 +205,10 @@ public class Client{
      */
     public String getName() {
         return user.getUser();
+    }
+    
+    public void setUer(User user) {
+        this.user = user;
     }
     
     /**
